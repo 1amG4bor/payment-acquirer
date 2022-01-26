@@ -1,0 +1,9 @@
+server.port=9100
+http:
+  apikey:
+    acquirer: 4e5622b2-4fb5-429a-ab0c-efadcbb28b8e
+    account-network: a074330b-fae5-411d-937c-2b5b48035afc
+    issuer: 21622496-1a7c-4929-9a78-626b2aa68115
+
+spring:
+  profiles.active: dev
