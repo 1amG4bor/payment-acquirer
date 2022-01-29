@@ -1,4 +1,4 @@
-server.port=9100
+server.port: 9100
 http:
   apikey:
     acquirer: 4e5622b2-4fb5-429a-ab0c-efadcbb28b8e
@@ -7,3 +7,16 @@ http:
 
 spring:
   profiles.active: dev
+  datasource:
+    url: 'jdbc:h2:mem:acquirerdb;DB_CLOSE_DELAY=-1'
+    driverClassName: org.h2.Driver
+    username: admin
+    password: admin
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+    open-in-view: false
+  h2:
+    console:
+      enabled: true
+      path: /h2

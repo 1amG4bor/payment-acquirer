@@ -18,7 +18,7 @@ import java.io.IOException;
 public class APIKeyAuthFilter extends GenericFilterBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(APIKeyAuthFilter.class);
-    private static final String requestHeaderKey = "X-API-Key";
+    private static final String requestHeaderKey = "Authentication-API-key";
 
     @Value("${http.apikey.acquirer}")
     private String acquirerApiKey;
