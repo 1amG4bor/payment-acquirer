@@ -1,15 +1,21 @@
 package com.g4bor.payment.acquirer.controller;
 
+import com.g4bor.payment.acquirer.exception.InfoResponse;
 import com.g4bor.payment.acquirer.model.Account;
 import com.g4bor.payment.acquirer.model.DTO.AccountCreationDTO;
 import com.g4bor.payment.acquirer.model.DTO.WalletDTO;
 import com.g4bor.payment.acquirer.service.AccountService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping(value = "/api/users",
+        consumes = "application/json",
+        produces = "application/json")
 public class AccountController {
 
     private final AccountService accountService;
@@ -18,7 +24,7 @@ public class AccountController {
         this.accountService = accountService;
     }
 
-    @PostMapping("/new")
+    @PostMapping()
     public Account createNewAccount(@RequestBody AccountCreationDTO accountDto) {
         return accountService.createAccount(accountDto);
     }
@@ -31,6 +37,21 @@ public class AccountController {
     @GetMapping("/name/{username}")
     public Account getAccountByUsername(@PathVariable String username) {
         return accountService.getAccountByUsername(username);
+    }
+
+    @PutMapping("/{id}")
+    public Account updateAccount(@RequestBody Account account) {
+        return accountService.updateAccount(account);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Object> deleteAccount(@PathVariable String id) {
+        accountService.deleteAccountById(id);
+
+        InfoResponse response = new InfoResponse(
+                "Account is successfully deleted.",
+                List.of("Deleted record id: " + id));
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/{id}/wallets")

@@ -7,7 +7,10 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class ErrorResponse {
+/**
+ * Used for returning custom response such as an error message or other custom information
+ */
+public class InfoResponse {
 
     private String message;
     private List<String> details;

@@ -1,6 +1,7 @@
 package com.g4bor.payment.acquirer.service;
 
 import com.g4bor.payment.acquirer.converter.AccountConverter;
+import com.g4bor.payment.acquirer.exception.CustomError;
 import com.g4bor.payment.acquirer.exception.RecordNotFoundException;
 import com.g4bor.payment.acquirer.model.Account;
 import com.g4bor.payment.acquirer.model.Currency;
@@ -19,14 +20,6 @@ import java.util.stream.Collectors;
 @Service
 public class AccountService {
 
-    private static final String ACCOUNT_NOT_FOUND_ERROR = "No account found with the given ID: '%s'";
-    private static final String EXISTING_ACCOUNT_ERROR = "Account is already exist with the given username: '%s'";
-    private static final String WALLET_NOT_FOUND_ERROR =
-            "No wallet found in the given currency: '%s', for the account with id: '%s'";
-    private static final String INVALID_CURRENCY_ERROR = "'%s' is an unsupported currency code!";
-    private static final String ALREADY_USED_CURRENCY_ERROR =
-            "Only one wallet can exist in a given currency and there is already one in '%s' currency.";
-
     AccountRepository accountRepository;
     AccountConverter accountConverter;
 
@@ -35,19 +28,44 @@ public class AccountService {
         this.accountConverter = accountConverter;
     }
 
+    // region > Create
     public Account createAccount(AccountCreationDTO accountDTO) {
         Account existingAccount = accountRepository.findAccountByUsername(accountDTO.getUsername());
         if (null != existingAccount) {
-            throw new IllegalArgumentException(String.format(EXISTING_ACCOUNT_ERROR, accountDTO.getUsername()));
+            throw new IllegalArgumentException(CustomError.EXISTING_ACCOUNT.formatMessage(accountDTO.getUsername()));
         }
         Account account = accountConverter.creationDtoToAccount(accountDTO);
         return accountRepository.save(account);
     }
 
+    public Account addWallet(String id, String currencyISO) throws NoSuchElementException, IllegalArgumentException {
+        Currency newCurrency = Currency.resolve(currencyISO);
+        if (null == newCurrency) {
+            throw new NoSuchElementException(CustomError.INVALID_CURRENCY.formatMessage(currencyISO));
+        }
+
+        Account account = accountRepository.findAccountByAccountId(UUID.fromString(id));
+        if (null == account) {
+            throw new RecordNotFoundException(CustomError.ACCOUNT_NOT_FOUND.formatMessage(id));
+        }
+
+        List<String> existingCurrencies = account.getWallets().stream()
+                .map(item -> item.getCurrency().getIsoCode())
+                .collect(Collectors.toList());
+        if (existingCurrencies.contains(currencyISO)) {
+            throw new IllegalArgumentException(CustomError.ALREADY_USED_CURRENCY.formatMessage(currencyISO));
+        }
+
+        account.addWallet(new Wallet(newCurrency, 0.0));
+        return accountRepository.save(account);
+    }
+    // endregion
+
+    // region > Read
     public Account getAccountByUsername(String username) {
         Account account = accountRepository.findAccountByUsername(username);
         if (null == account) {
-            throw new RecordNotFoundException(String.format(ACCOUNT_NOT_FOUND_ERROR, username));
+            throw new RecordNotFoundException(CustomError.ACCOUNT_NOT_FOUND.formatMessage(username));
         }
         return account;
     }
@@ -55,7 +73,7 @@ public class AccountService {
     public Account getAccountById(String id) {
         Account account = accountRepository.findAccountByAccountId(UUID.fromString(id));
         if (null == account) {
-            throw new RecordNotFoundException(String.format(ACCOUNT_NOT_FOUND_ERROR, id));
+            throw new RecordNotFoundException(CustomError.ACCOUNT_NOT_FOUND.formatMessage(id));
         }
         return account;
     }
@@ -63,7 +81,7 @@ public class AccountService {
     public Set<WalletDTO> getWalletsForAccount(String id) {
         Account account = accountRepository.findAccountByAccountId(UUID.fromString(id));
         if (null == account) {
-            throw new RecordNotFoundException(String.format(ACCOUNT_NOT_FOUND_ERROR, id));
+            throw new RecordNotFoundException(CustomError.ACCOUNT_NOT_FOUND.formatMessage(id));
         }
         return account.getWallets().stream()
                 .map(wallet -> new WalletDTO(wallet.getCurrency(), wallet.getBalance()))
@@ -73,36 +91,45 @@ public class AccountService {
     public Double getBalanceByAccountIdAndCurrency(String id, String currencyISO) {
         Account account = accountRepository.findAccountByAccountId(UUID.fromString(id));
         if (null == account) {
-            throw new RecordNotFoundException(String.format(ACCOUNT_NOT_FOUND_ERROR, id));
+            throw new RecordNotFoundException(CustomError.ACCOUNT_NOT_FOUND.formatMessage(id));
         }
 
         Wallet wallet = account.getWallets().stream()
                 .filter(i -> i.getCurrency().getIsoCode().equals(currencyISO))
                 .findFirst()
-                .orElseThrow(() -> new RecordNotFoundException(String.format(WALLET_NOT_FOUND_ERROR, currencyISO, id)));
+                .orElseThrow(() -> new RecordNotFoundException(CustomError.NO_WALLET_FOR_ACCOUNT.formatMessage(currencyISO, id)));
 
         return wallet.getBalance();
     }
+    // endregion
 
-    public Account addWallet(String id, String currencyISO) throws NoSuchElementException, IllegalArgumentException {
-        Currency newCurrency = Currency.resolve(currencyISO);
-        if (null == newCurrency) {
-            throw new NoSuchElementException(String.format(INVALID_CURRENCY_ERROR, currencyISO));
+    // region > Update
+    public Account updateAccount(Account account) {
+        Account originalAccount = accountRepository.findAccountByAccountId(account.getAccountId());
+        if (null == originalAccount) {
+            throw new RecordNotFoundException(CustomError.ACCOUNT_NOT_FOUND.formatMessage(account.getAccountId().toString()));
         }
-
-        Account account = accountRepository.findAccountByAccountId(UUID.fromString(id));
-        if (null == account) {
-            throw new RecordNotFoundException(String.format(ACCOUNT_NOT_FOUND_ERROR, id));
-        }
-
-        List<String> existingCurrencies = account.getWallets().stream()
-                .map(item -> item.getCurrency().getIsoCode())
-                .collect(Collectors.toList());
-        if (existingCurrencies.contains(currencyISO)) {
-            throw new IllegalArgumentException(String.format(ALREADY_USED_CURRENCY_ERROR, currencyISO));
-        }
-
-        account.addWallet(new Wallet(newCurrency, 0.0));
         return accountRepository.save(account);
     }
+
+    // endregion
+
+    // region > Delete
+    public void deleteAccountById(String id) {
+        accountRepository.deleteById(UUID.fromString(id));
+    }
+
+    public void deleteWallet(String accountId, Long walletId) {
+        Account account = accountRepository.findAccountByAccountId(UUID.fromString(accountId));
+        if (null == account) {
+            throw new RecordNotFoundException(CustomError.ACCOUNT_NOT_FOUND.formatMessage(accountId));
+        }
+
+        boolean isRemoved = account.removeWallet(walletId);
+        if (!isRemoved) {
+            throw new RecordNotFoundException(CustomError.WALLET_NOT_FOUND.formatMessage(walletId.toString()));
+        }
+        accountRepository.save(account);
+    }
+    // endregion
 }

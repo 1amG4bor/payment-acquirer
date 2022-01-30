@@ -13,27 +13,19 @@ import java.util.NoSuchElementException;
 @ControllerAdvice
 public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(RecordNotFoundException.class)
-    public final ResponseEntity<Object> handleRecordNotFoundException(
+    @ExceptionHandler({RecordNotFoundException.class, NoSuchElementException.class})
+    public final ResponseEntity<Object> handleNotFoundExceptions(
             RecordNotFoundException err, WebRequest request) {
         List<String> details = List.of(err.getLocalizedMessage());
-        ErrorResponse error = new ErrorResponse("Bad request", details);
+        InfoResponse error = new InfoResponse(HttpStatus.NOT_FOUND.getReasonPhrase(), details);
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(NoSuchElementException.class)
-    public final ResponseEntity<Object> handleNoSuchElementException(
-            NoSuchElementException err, WebRequest request) {
-        List<String> details = List.of(err.getLocalizedMessage());
-        ErrorResponse error = new ErrorResponse("Bad request", details);
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public final ResponseEntity<Object> handleIllegalArgumentException(
+    @ExceptionHandler({IllegalArgumentException.class, InsufficientFundsException.class})
+    public final ResponseEntity<Object> handleBadRequestExceptions(
             IllegalArgumentException err, WebRequest request) {
         List<String> details = List.of(err.getLocalizedMessage());
-        ErrorResponse error = new ErrorResponse("Bad request", details);
+        InfoResponse error = new InfoResponse(HttpStatus.BAD_REQUEST.getReasonPhrase(), details);
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 }
