@@ -31,7 +31,7 @@ public class APIKeyAuthFilter extends GenericFilterBean {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         String path = request.getRequestURI();
 
-        if(!path.startsWith("/api")){
+        if(path.startsWith("/api-doc")){
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }
