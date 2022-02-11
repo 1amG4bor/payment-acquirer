@@ -104,7 +104,7 @@ fabric.properties
 *.log
 
 # Package Files #
-target/**
+**/target/**
 *.jar
 *.war
 *.nar
