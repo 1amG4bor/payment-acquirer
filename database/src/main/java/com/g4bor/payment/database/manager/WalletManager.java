@@ -49,6 +49,7 @@ public class WalletManager {
         if ( balance + amount < 0.0) {
             throw new InsufficientFundsException();
         }
+
         wallet.setBalance(balance + amount);
         walletRepository.save(wallet);
         return wallet.getBalance();

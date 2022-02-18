@@ -2,7 +2,9 @@ package com.g4bor.payment.database.converter;
 
 import com.g4bor.payment.database.model.Wallet;
 import com.g4bor.payment.entity.model.WalletDTO;
+import org.springframework.stereotype.Service;
 
+@Service
 public class WalletConverter {
 
     public WalletDTO entityToDTO(Wallet entity) {

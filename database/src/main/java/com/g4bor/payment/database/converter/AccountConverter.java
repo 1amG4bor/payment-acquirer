@@ -3,7 +3,10 @@ package com.g4bor.payment.database.converter;
 import com.g4bor.payment.database.model.Account;
 import com.g4bor.payment.database.model.Address;
 import com.g4bor.payment.database.model.Wallet;
-import com.g4bor.payment.entity.model.*;
+import com.g4bor.payment.entity.model.AccountDTO;
+import com.g4bor.payment.entity.model.AccountRegistrationDTO;
+import com.g4bor.payment.entity.model.AddressDTO;
+import com.g4bor.payment.entity.model.Currency;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -29,13 +32,17 @@ public class AccountConverter {
     }
 
     public AccountDTO entityToDTO(Account entity) {
-        AddressDTO addressDto = addressConverter.entityToDTO(entity.getAddress());
+        AddressDTO addressDto = new AddressDTO();
+        if (null != entity.getAddress()) {
+            addressDto = addressConverter.entityToDTO(entity.getAddress());
+        }
         Set<Long> walletIds = entity.getWallets().stream()
                 .map(Wallet::getId)
                 .collect(Collectors.toSet());
 
         return AccountDTO.builder()
                 .withAccountId(entity.getAccountId())
+                .withUsername(entity.getUsername())
                 .withFirstName(entity.getFirstName())
                 .withLastName(entity.getLastName())
                 .withAddress(addressDto)
@@ -45,7 +52,10 @@ public class AccountConverter {
     }
 
     public Account dtoToEntity(AccountDTO dto) {
-        Address address = addressConverter.dtoToEntity(dto.getAddress());
+        Address address = new Address();
+        if (null != dto.getAddress()) {
+            address = addressConverter.dtoToEntity(dto.getAddress());
+        }
 
         return Account.builder()
                 .withAccountId(dto.getAccountId())

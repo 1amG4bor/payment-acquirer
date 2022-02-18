@@ -3,6 +3,7 @@ package com.g4bor.payment.integration.acquire_service.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -13,11 +14,14 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class APIKeyAuthFilter extends GenericFilterBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(APIKeyAuthFilter.class);
+    public static final List<String> ignoredPaths = List.of("/h2", "/api-doc");
+
     private static final String requestHeaderKey = "Authentication-API-key";
 
     @Value("${http.apikey.acquirer}")
@@ -31,7 +35,7 @@ public class APIKeyAuthFilter extends GenericFilterBean {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         String path = request.getRequestURI();
 
-        if(path.startsWith("/api-doc")){
+        if(ignoredPaths.stream().anyMatch(path::startsWith)) {
             filterChain.doFilter(servletRequest, servletResponse);
             return;
         }

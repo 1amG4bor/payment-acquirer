@@ -17,6 +17,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.util.Date;
 import java.util.HashSet;
@@ -47,17 +48,19 @@ public class Account {
     @Column(nullable = false)
     private String lastName;
 
-    private Address address;
     private String idNumber;
+
+    @OneToOne(targetEntity = Address.class, cascade=CascadeType.ALL, fetch = FetchType.EAGER)
+    private Address address;
+
+    @OneToMany(targetEntity = Wallet.class, cascade=CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<Wallet> wallets = new HashSet<>();
 
     @CreatedDate
     private Date createdAt;
 
     @LastModifiedDate
     private Date updatedAt;
-
-    @OneToMany(targetEntity = Wallet.class, cascade=CascadeType.ALL, fetch = FetchType.EAGER)
-    private Set<Wallet> wallets = new HashSet<>();
 
     public Account(String username, String firstName, String lastName) {
         this.username = username;

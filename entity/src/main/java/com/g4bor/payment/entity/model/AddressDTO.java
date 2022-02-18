@@ -11,10 +11,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder(access = AccessLevel.PUBLIC, setterPrefix = "with")
 public class AddressDTO {
-    private String Country;
-    private String Region;
+    private String country;
+    private String region;
     private String zipCode;
-    private String City;
-    private String Street;
+    private String city;
+    private String street;
     private String additionalInfo;
 }

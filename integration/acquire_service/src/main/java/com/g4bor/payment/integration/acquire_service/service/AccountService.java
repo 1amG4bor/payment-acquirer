@@ -1,12 +1,11 @@
 package com.g4bor.payment.integration.acquire_service.service;
 
+import com.g4bor.payment.database.converter.AddressConverter;
 import com.g4bor.payment.database.manager.AccountManager;
 import com.g4bor.payment.database.model.Account;
+import com.g4bor.payment.database.model.Address;
 import com.g4bor.payment.database.model.Wallet;
-import com.g4bor.payment.entity.model.AccountDTO;
-import com.g4bor.payment.entity.model.AccountRegistrationDTO;
-import com.g4bor.payment.entity.model.Currency;
-import com.g4bor.payment.entity.model.WalletDTO;
+import com.g4bor.payment.entity.model.*;
 import com.g4bor.payment.database.converter.AccountConverter;
 import com.g4bor.payment.database.converter.WalletConverter;
 import com.g4bor.payment.database.exception.ErrorMsg;
@@ -25,13 +24,16 @@ public class AccountService {
     private final AccountManager accountManager;
     private final AccountConverter accountConverter;
     private final WalletConverter walletConverter;
+    private final AddressConverter addressConverter;
 
     public AccountService(AccountManager accountManager,
                           AccountConverter accountConverter,
-                          WalletConverter walletConverter) {
+                          WalletConverter walletConverter,
+                          AddressConverter addressConverter) {
         this.accountManager = accountManager;
         this.accountConverter = accountConverter;
         this.walletConverter = walletConverter;
+        this.addressConverter = addressConverter;
     }
 
     // region > Create
@@ -91,6 +93,17 @@ public class AccountService {
 
     public AccountDTO changeUsername(String id, String username) {
         Account account = accountManager.changeUsername(UUID.fromString(id), username);
+        return accountConverter.entityToDTO(account);
+    }
+
+    public AccountDTO changeAddress(String id, AddressDTO addressDTO) {
+        Address newAddress = addressConverter.dtoToEntity(addressDTO);
+        Account account = accountManager.changeAddress(UUID.fromString(id), newAddress);
+        return accountConverter.entityToDTO(account);
+    }
+
+    public AccountDTO changeIdNumber(String id, String idNumber) {
+        Account account = accountManager.changeIdNumber(UUID.fromString(id), idNumber);
         return accountConverter.entityToDTO(account);
     }
     // endregion

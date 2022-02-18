@@ -2,6 +2,7 @@ package com.g4bor.payment.integration.acquire_service.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,12 +34,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         // Use API-Key authentication
         http.authorizeRequests()
-            .antMatchers("/api/**").permitAll()
+            .antMatchers("/api/**", "/h2/**", "/api-doc/**").permitAll()
             .anyRequest().authenticated();
-    }
-
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/h2/**", "/api-doc/**");
     }
 }

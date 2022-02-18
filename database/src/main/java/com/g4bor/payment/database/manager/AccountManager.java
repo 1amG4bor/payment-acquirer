@@ -4,6 +4,7 @@ import com.g4bor.payment.database.converter.AccountConverter;
 import com.g4bor.payment.database.exception.ErrorMsg;
 import com.g4bor.payment.database.exception.EntityNotFoundException;
 import com.g4bor.payment.database.model.Account;
+import com.g4bor.payment.database.model.Address;
 import com.g4bor.payment.database.model.Wallet;
 import com.g4bor.payment.database.repository.AccountRepository;
 import com.g4bor.payment.entity.model.AccountDTO;
@@ -80,6 +81,18 @@ public class AccountManager {
     public Account changeUsername(UUID accountId, String username) {
         Account account = accountRepository.findAccountByAccountId(accountId);
         account.setUsername(username);
+        return accountRepository.save(account);
+    }
+
+    public Account changeAddress(UUID accountId, Address newAddress) {
+        Account account = accountRepository.findAccountByAccountId(accountId);
+        account.setAddress(newAddress);
+        return accountRepository.save(account);
+    }
+
+    public Account changeIdNumber(UUID accountId, String idNumber) {
+        Account account = accountRepository.findAccountByAccountId(accountId);
+        account.setIdNumber(idNumber);
         return accountRepository.save(account);
     }
 
